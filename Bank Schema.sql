@@ -213,7 +213,7 @@ CREATE TRIGGER check_customer_details
       SIGNAL SQLSTATE '12341'
       SET MESSAGE_TEXT = 'Please enter a valid NIC';
     END IF;
-    IF (NEW.first_name REGEXP '[0-9]|[" "]' OR NEW.last_name REGEXP '[0-9]|[" "]') = 1
+    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
     THEN
       SIGNAL SQLSTATE '12342'
       SET MESSAGE_TEXT = 'Please enter a valid name';
@@ -222,7 +222,7 @@ CREATE TRIGGER check_customer_details
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER employee_customer_details
+CREATE TRIGGER check_employee_details
   BEFORE INSERT
   ON Employee
   FOR EACH ROW
@@ -232,7 +232,7 @@ CREATE TRIGGER employee_customer_details
       SIGNAL SQLSTATE '12343'
       SET MESSAGE_TEXT = 'Please enter a valid NIC';
     END IF;
-    IF (NEW.first_name REGEXP '[0-9]|[" "]' OR NEW.last_name REGEXP '[0-9]|[" "]') = 1
+    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
     THEN
       SIGNAL SQLSTATE '12345'
       SET MESSAGE_TEXT = 'Please enter a valid name';
