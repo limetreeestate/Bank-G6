@@ -118,11 +118,13 @@ CREATE TABLE Fixed_Deposit (
 );
 
 CREATE TABLE Transaction (
-  transaction_ID VARCHAR(10),
-  account_no     INT(10),
-  amount         DECIMAL(10, 2) CHECK (amount > 0), /*Non zero or negative transaction amounts are invalid*/
-  branch         VARCHAR(4),
-  time_stamp     DATETIME CHECK (time_stamp <= CURRENT_TIMESTAMP ), /*Timestamp should not be after current timestamp*/
+  transaction_ID   VARCHAR(10),
+  account_no       INT(10),
+  transaction_type ENUM ('Withdrawal', 'Deposit'),
+  amount           DECIMAL(10, 2) CHECK (amount > 0), /*Non zero or negative transaction amounts are invalid*/
+  branch           VARCHAR(4),
+  time_stamp       DATETIME CHECK (time_stamp <=
+                                   CURRENT_TIMESTAMP ), /*Timestamp should not be after current timestamp*/
 
   PRIMARY KEY (transaction_ID),
   FOREIGN KEY (account_no) REFERENCES Account (account_no),
@@ -158,29 +160,30 @@ CREATE TABLE ATM_Withdrawals (
   ATM_ID         VARCHAR(10),
 
   PRIMARY KEY (transaction_ID),
-  FOREIGN KEY (transaction_ID) REFERENCES Transaction (transaction_ID)
-);
-
-CREATE TABLE Loan (
-  loan_ID       VARCHAR(6),
-  customer_ID   VARCHAR(6),
-  interest_rate DECIMAL(3, 2) CHECK (interest_rate >= 0), /*Negative loan interest rates invalid*/
-  installment   DECIMAL(10, 2) CHECK (installment > 0), /*Negative loan installments invalid*/
-
-  PRIMARY KEY (loan_ID),
-  FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID)
+  FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
 );
 
 CREATE TABLE Loan_Request (
-  loan_ID              VARCHAR(6),
+  loan_request_ID      VARCHAR(6),
+  customer_ID          VARCHAR(6),
   amount               DECIMAL(10, 2) CHECK (amount > 0), /*Negative loan amount invalid*/
   settlement_period    INT(3) /*Unsure*/,
   applicant_income     DECIMAL(10, 2) CHECK (applicant_income > 0), /*Negative applicant income is invalid*/
   applicant_profession VARCHAR(20),
   office_address       VARCHAR(100),
 
+  PRIMARY KEY (loan_request_ID),
+  FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID)
+);
+
+CREATE TABLE Loan (
+  loan_ID         VARCHAR(6),
+  loan_request_ID VARCHAR(6),
+  interest_rate   DECIMAL(3, 2) CHECK (interest_rate >= 0), /*Negative loan interest rates invalid*/
+  installment     DECIMAL(10, 2) CHECK (installment > 0), /*Negative loan installments invalid*/
+
   PRIMARY KEY (loan_ID),
-  FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID)
+  FOREIGN KEY (loan_request_ID) REFERENCES Loan_Request (loan_request_ID)
 );
 
 CREATE TABLE Online_Loan (
@@ -201,6 +204,40 @@ CREATE TABLE Offline_Loan (
   FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID),
   FOREIGN KEY (approved_by) REFERENCES Manager (employee_ID)
 );
+
+INSERT INTO branch (branch_ID, branch_name, city)
+VALUES ('B001', 'branch1', 'city1'), ('B002', 'branch2', 'city2');
+
+INSERT INTO customer (customer_ID, customer_type) VALUES ('C00001', 'Individual'), ('C00002', 'Organization');
+
+INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
+VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
+
+INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
+VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
+
+INSERT INTO employee (employee_ID, branch, NIC, first_name, last_name, address, telephone)
+VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422');
+
+INSERT INTO manager (branch, employee_ID) VALUES ('B001', 'E00001');
+
+INSERT INTO account (account_no, customer_ID, branch_ID, balance)
+VALUES ('0000000001', 'C00001', 'B001', '100000');
+
+INSERT INTO savings_account_type (type_ID, type, interest_rate, minimum)
+VALUES ('01', 'Adult', '3.22', '1000.00');
+
+INSERT INTO savings_account (account_no, account_type) VALUES ('1', '01');
+
+INSERT INTO account (account_no, customer_ID, branch_ID, balance)
+VALUES ('0000000002', 'C00001', 'B001', '25000');
+
+INSERT INTO current_account (account_no, OD_amount) VALUES ('2', '10000.00');
+
+INSERT INTO fd_type (type_ID, type, interest_rate)
+VALUES ('01', '6 month', '13.00'), ('02', '12 month', '14.00'), ('03', '3 month', '15.00');
+
+INSERT INTO fixed_deposit (FD_ID, savings_acc, FD_type) VALUES ('1', '1', '01');
 
 DELIMITER $$
 CREATE TRIGGER check_customer_details
@@ -239,3 +276,16 @@ CREATE TRIGGER check_employee_details
     END IF;
   END $$
 DELIMITER ;
+
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+
+UPDATE Account
+SET balance = balance - 1000
+WHERE customer_ID = 'C00001';
+
+UPDATE Account
+SET balance = balance + 1000
+WHERE customer_ID = 'C00002';
+
+COMMIT;
