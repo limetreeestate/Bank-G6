@@ -158,7 +158,7 @@ CREATE TABLE ATM_Withdrawals (
   ATM_ID         VARCHAR(10),
 
   PRIMARY KEY (transaction_ID),
-  FOREIGN KEY (transaction_ID) REFERENCES Transaction (transaction_ID)
+  FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
 );
 
 CREATE TABLE Loan (
@@ -168,7 +168,8 @@ CREATE TABLE Loan (
   installment   DECIMAL(10, 2) CHECK (installment > 0), /*Negative loan installments invalid*/
 
   PRIMARY KEY (loan_ID),
-  FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID)
+  FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID),
+  FOREIGN KEY (loan_ID) REFERENCES Loan_Request (loan_ID)
 );
 
 CREATE TABLE Loan_Request (
@@ -179,8 +180,7 @@ CREATE TABLE Loan_Request (
   applicant_profession VARCHAR(20),
   office_address       VARCHAR(100),
 
-  PRIMARY KEY (loan_ID),
-  FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID)
+  PRIMARY KEY (loan_ID)
 );
 
 CREATE TABLE Online_Loan (
