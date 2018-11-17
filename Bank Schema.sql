@@ -3,7 +3,13 @@
 DROP DATABASE IF EXISTS Bank_demo;
 CREATE DATABASE Bank_demo;
 USE Bank_demo;
-
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Schema creation
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
 CREATE TABLE Branch (
   branch_ID   VARCHAR(4),
   branch_name VARCHAR(30) NOT NULL,
@@ -66,7 +72,7 @@ CREATE TABLE Account (
   account_no  INT(10),
   customer_ID VARCHAR(6),
   branch_ID   VARCHAR(4),
-  balance     DECIMAL(10, 2), /*Does not check negative balance to handle cases of debt*/
+  balance     DECIMAL(11, 2), /*Does not check negative balance to handle cases of debt*/
 
   PRIMARY KEY (account_no),
   FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID),
@@ -76,8 +82,8 @@ CREATE TABLE Account (
 CREATE TABLE Savings_Account_Type (
   type_ID       VARCHAR(2),
   type          VARCHAR(10),
-  interest_rate DECIMAL(3, 2) CHECK (interest_rate >= 0), /*Negative savings account interest rates invalid*/
-  minimum       DECIMAL(10, 2) CHECK (minimum > 0),
+  interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative savings account interest rates invalid*/
+  minimum       DECIMAL(11, 2) CHECK (minimum > 0),
 
   PRIMARY KEY (type_ID)
 );
@@ -93,7 +99,7 @@ CREATE TABLE Savings_Account (
 
 CREATE TABLE Current_Account (
   account_no INT(10),
-  OD_amount  DECIMAL(10, 2) CHECK (OD_amount >= 0), /*Negative overdraft amounts invalid*/
+  OD_amount  DECIMAL(11, 2) CHECK (OD_amount >= 0), /*Negative overdraft amounts invalid*/
 
   PRIMARY KEY (account_no),
   FOREIGN KEY (account_no) REFERENCES Account (account_no)
@@ -102,7 +108,7 @@ CREATE TABLE Current_Account (
 CREATE TABLE FD_Type (
   type_ID       VARCHAR(2),
   type          VARCHAR(10),
-  interest_rate DECIMAL(3, 2) CHECK (interest_rate >= 0), /*Negative FD interest rates invalid*/
+  interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative FD interest rates invalid*/
 
   PRIMARY KEY (type_ID)
 );
@@ -120,8 +126,7 @@ CREATE TABLE Fixed_Deposit (
 CREATE TABLE Transaction (
   transaction_ID   VARCHAR(10),
   account_no       INT(10),
-  transaction_type ENUM ('Withdrawal', 'Deposit'),
-  amount           DECIMAL(10, 2) CHECK (amount > 0), /*Non zero or negative transaction amounts are invalid*/
+  amount           DECIMAL(11, 2) CHECK (amount > 0), /*Non zero or negative transaction amounts are invalid*/
   branch           VARCHAR(4),
   time_stamp       DATETIME CHECK (time_stamp <=
                                    CURRENT_TIMESTAMP ), /*Timestamp should not be after current timestamp*/
@@ -166,9 +171,9 @@ CREATE TABLE ATM_Withdrawals (
 CREATE TABLE Loan_Request (
   loan_request_ID      VARCHAR(6),
   customer_ID          VARCHAR(6),
-  amount               DECIMAL(10, 2) CHECK (amount > 0), /*Negative loan amount invalid*/
+  amount               DECIMAL(11, 2) CHECK (amount > 0), /*Negative loan amount invalid*/
   settlement_period    INT(3) /*Unsure*/,
-  applicant_income     DECIMAL(10, 2) CHECK (applicant_income > 0), /*Negative applicant income is invalid*/
+  applicant_income     DECIMAL(11, 2) CHECK (applicant_income > 0), /*Negative applicant income is invalid*/
   applicant_profession VARCHAR(20),
   office_address       VARCHAR(100),
 
@@ -179,8 +184,8 @@ CREATE TABLE Loan_Request (
 CREATE TABLE Loan (
   loan_ID         VARCHAR(6),
   loan_request_ID VARCHAR(6),
-  interest_rate   DECIMAL(3, 2) CHECK (interest_rate >= 0), /*Negative loan interest rates invalid*/
-  installment     DECIMAL(10, 2) CHECK (installment > 0), /*Negative loan installments invalid*/
+  interest_rate   DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative loan interest rates invalid*/
+  installment     DECIMAL(11, 2) CHECK (installment > 0), /*Negative loan installments invalid*/
 
   PRIMARY KEY (loan_ID),
   FOREIGN KEY (loan_request_ID) REFERENCES Loan_Request (loan_request_ID)
@@ -204,14 +209,102 @@ CREATE TABLE Offline_Loan (
   FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID),
   FOREIGN KEY (approved_by) REFERENCES Manager (employee_ID)
 );
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Trigger declaration
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
 
+/*Check if customer has valid NIC and valid names*/
+DELIMITER $$
+CREATE TRIGGER check_customer_details BEFORE INSERT ON Individual
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
+    THEN
+      SIGNAL SQLSTATE '12341'
+      SET MESSAGE_TEXT = 'Please enter a valid NIC';
+    END IF;
+    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
+    THEN
+      SIGNAL SQLSTATE '12342'
+      SET MESSAGE_TEXT = 'Please enter a valid name';
+    END IF;
+  END $$
+DELIMITER ;
+
+/*Check if employee has valid NIC and valid names*/
+DELIMITER $$
+CREATE TRIGGER check_employee_details BEFORE INSERT ON Employee
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
+    THEN
+      SIGNAL SQLSTATE '12343'
+      SET MESSAGE_TEXT = 'Please enter a valid NIC';
+    END IF;
+    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
+    THEN
+      SIGNAL SQLSTATE '12345'
+      SET MESSAGE_TEXT = 'Please enter a valid name';
+    END IF;
+  END $$
+DELIMITER ;
+
+/*Check if withrawing account has enough balance*/
+DELIMITER $$
+CREATE TRIGGER check_account_balance_trigger BEFORE INSERT ON Withdrawal
+  FOR EACH ROW
+  BEGIN
+    DECLARE account_balance DECIMAL(11, 2);
+    DECLARE withdrawal_amount DECIMAL(11, 2);
+
+    SELECT balance, amount
+    INTO account_balance, withdrawal_amount
+    FROM Account NATURAL JOIN transaction
+    WHERE Transaction.transaction_ID = NEW.transaction_ID;
+
+    IF (account_balance < withdrawal_amount) THEN
+      DELETE FROM Transaction WHERE transaction_ID = NEW.transaction_ID; /*Delete parent table record*/
+      SIGNAL SQLSTATE '12346'
+      SET MESSAGE_TEXT = 'Insufficient account balance';
+    END IF;
+  END $$
+DELIMITER ;
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Atomic transaction declaration
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+
+UPDATE Account
+SET balance = balance - 1000
+WHERE customer_ID = 'C00001';
+
+UPDATE Account
+SET balance = balance + 1000
+WHERE customer_ID = 'C00002';
+
+COMMIT;
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Test Data insertion
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
+SET AUTOCOMMIT = 1;
 INSERT INTO branch (branch_ID, branch_name, city)
 VALUES ('B001', 'branch1', 'city1'), ('B002', 'branch2', 'city2');
 
 INSERT INTO customer (customer_ID, customer_type) VALUES ('C00001', 'Individual'), ('C00002', 'Organization');
-
-INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
-VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
 
 INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
 VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
@@ -238,54 +331,3 @@ INSERT INTO fd_type (type_ID, type, interest_rate)
 VALUES ('01', '6 month', '13.00'), ('02', '12 month', '14.00'), ('03', '3 month', '15.00');
 
 INSERT INTO fixed_deposit (FD_ID, savings_acc, FD_type) VALUES ('1', '1', '01');
-
-DELIMITER $$
-CREATE TRIGGER check_customer_details
-  BEFORE INSERT
-  ON Individual
-  FOR EACH ROW
-  BEGIN
-    IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
-    THEN
-      SIGNAL SQLSTATE '12341'
-      SET MESSAGE_TEXT = 'Please enter a valid NIC';
-    END IF;
-    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
-    THEN
-      SIGNAL SQLSTATE '12342'
-      SET MESSAGE_TEXT = 'Please enter a valid name';
-    END IF;
-  END $$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER check_employee_details
-  BEFORE INSERT
-  ON Employee
-  FOR EACH ROW
-  BEGIN
-    IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
-    THEN
-      SIGNAL SQLSTATE '12343'
-      SET MESSAGE_TEXT = 'Please enter a valid NIC';
-    END IF;
-    IF (NEW.first_name REGEXP '[0-9]|[ ]' OR NEW.last_name REGEXP '[0-9]|[ ]') = 1
-    THEN
-      SIGNAL SQLSTATE '12345'
-      SET MESSAGE_TEXT = 'Please enter a valid name';
-    END IF;
-  END $$
-DELIMITER ;
-
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
-
-UPDATE Account
-SET balance = balance - 1000
-WHERE customer_ID = 'C00001';
-
-UPDATE Account
-SET balance = balance + 1000
-WHERE customer_ID = 'C00002';
-
-COMMIT;
