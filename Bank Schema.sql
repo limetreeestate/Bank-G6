@@ -20,6 +20,7 @@ CREATE TABLE Branch (
 
 CREATE TABLE Customer (
   customer_ID   VARCHAR(6),
+  password VARCHAR(20),
   customer_type ENUM ('Individual', 'Organization'),
   PRIMARY KEY (customer_ID)
 );
@@ -80,12 +81,12 @@ CREATE TABLE Account (
 );
 
 CREATE TABLE Savings_Account_Type (
-  type_ID       VARCHAR(2),
+  account_type       VARCHAR(2),
   type          VARCHAR(10),
   interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative savings account interest rates invalid*/
   minimum       DECIMAL(11, 2) CHECK (minimum > 0),
 
-  PRIMARY KEY (type_ID)
+  PRIMARY KEY (account_type)
 );
 
 CREATE TABLE Savings_Account (
@@ -106,11 +107,11 @@ CREATE TABLE Current_Account (
 );
 
 CREATE TABLE FD_Type (
-  type_ID       VARCHAR(2),
+  FD_type       VARCHAR(2),
   type          VARCHAR(10),
   interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative FD interest rates invalid*/
 
-  PRIMARY KEY (type_ID)
+  PRIMARY KEY (FD_type)
 );
 
 CREATE TABLE Fixed_Deposit (
@@ -143,6 +144,21 @@ CREATE TABLE Withdrawal (
   FOREIGN KEY (transaction_ID) REFERENCES Transaction (transaction_ID)
 );
 
+CREATE TABLE Standard_Withdrawal (
+  transaction_ID VARCHAR(10),
+
+  PRIMARY KEY (transaction_ID),
+  FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
+);
+
+CREATE TABLE ATM_Withdrawals (
+  transaction_ID VARCHAR(10),
+  ATM_ID         VARCHAR(10),
+
+  PRIMARY KEY (transaction_ID),
+  FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
+);
+
 CREATE TABLE Deposit (
   transaction_ID VARCHAR(10) NOT NULL,
 
@@ -158,14 +174,6 @@ CREATE TABLE Transfer (/*Transfer is identified as a withdrawal from one account
   PRIMARY KEY (transfer_ID),
   FOREIGN KEY (withdrwal_ID) REFERENCES Withdrawal (transaction_ID),
   FOREIGN KEY (deposit_ID) REFERENCES Deposit (transaction_ID)
-);
-
-CREATE TABLE ATM_Withdrawals (
-  transaction_ID VARCHAR(10),
-  ATM_ID         VARCHAR(10),
-
-  PRIMARY KEY (transaction_ID),
-  FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
 );
 
 CREATE TABLE Loan_Request (
@@ -331,3 +339,51 @@ INSERT INTO fd_type (type_ID, type, interest_rate)
 VALUES ('01', '6 month', '13.00'), ('02', '12 month', '14.00'), ('03', '3 month', '15.00');
 
 INSERT INTO fixed_deposit (FD_ID, savings_acc, FD_type) VALUES ('1', '1', '01');
+
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#View creation
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
+CREATE VIEW current_account_view AS
+  SELECT *
+  FROM account NATURAL JOIN current_account;
+
+CREATE VIEW savings_account_view AS
+  SELECT *
+  FROM account NATURAL JOIN (savings_account NATURAL JOIN savings_account_type);
+
+CREATE VIEW online_Loan_view AS
+  SELECT *
+  FROM Loan_Request NATURAL JOIN (Loan NATURAL JOIN Online_loan);
+
+CREATE VIEW offline_loan_view AS
+  SELECT *
+  FROM Loan_Request NATURAL JOIN (Loan NATURAL JOIN Offline_Loan);
+
+
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#User account creation and privilege assignment
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
+#Customer account and privileges
+CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
+
+GRANT ALL PRIVILEGES ON Individual TO 'customer'@'localhost';
+GRANT ALL PRIVILEGES ON Organization TO 'customer'@'localhost';
+GRANT SELECT, INSERT, DELETE ON Loan_Request TO 'customer'@'localhost';
+
+CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
+
+GRANT SELECT ,DELETE , INSERT, UPDATE ON * TO 'employee'@'localhost';
+
+CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
+
+GRANT ALL PRIVILEGES ON * TO 'manager'@'localhost';
