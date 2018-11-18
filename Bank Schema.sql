@@ -10,13 +10,6 @@ USE Bank_demo;
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
-CREATE TABLE Branch (
-  branch_ID   VARCHAR(4),
-  branch_name VARCHAR(30) NOT NULL,
-  city        VARCHAR(30) NOT NULL,
-
-  PRIMARY KEY (branch_ID)
-);
 
 CREATE TABLE Customer (
   customer_ID   VARCHAR(6),
@@ -47,6 +40,15 @@ CREATE TABLE Organization (
   FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID)
 );
 
+CREATE TABLE Branch (
+  branch_ID   VARCHAR(4),
+  branch_name VARCHAR(30) NOT NULL,
+  city        VARCHAR(30) NULL,
+  employee_ID VARCHAR(6)  NULL,
+
+  PRIMARY KEY (branch_ID)
+);
+
 CREATE TABLE Employee (
   employee_ID VARCHAR(6),
   branch      VARCHAR(4)         NOT NULL,
@@ -55,19 +57,22 @@ CREATE TABLE Employee (
   last_name   VARCHAR(20)        NOT NULL,
   address     VARCHAR(100)       NOT NULL,
   telephone   INT(10)            NOT NULL,
+  salary   INT(10)            NOT NULL,
 
   PRIMARY KEY (employee_ID),
   FOREIGN KEY (branch) REFERENCES Branch (branch_ID)
 );
 
 CREATE TABLE Manager (
-  branch      VARCHAR(4),
+
   employee_ID VARCHAR(6),
 
-  PRIMARY KEY (branch, employee_ID),
-  FOREIGN KEY (branch) REFERENCES Branch (branch_ID),
+  PRIMARY KEY (employee_ID),
   FOREIGN KEY (employee_ID) REFERENCES Employee (employee_ID)
 );
+
+ALTER TABLE Branch
+    ADD FOREIGN KEY (employee_ID) REFERENCES Manager(employee_ID);
 
 CREATE TABLE Account (
   account_no  INT(10),
@@ -95,7 +100,7 @@ CREATE TABLE Savings_Account (
 
   PRIMARY KEY (account_no),
   FOREIGN KEY (account_no) REFERENCES Account (account_no),
-  FOREIGN KEY (account_type) REFERENCES Savings_Account_Type (type_ID)
+  FOREIGN KEY (account_type) REFERENCES Savings_Account_Type (account_type)
 );
 
 CREATE TABLE Current_Account (
@@ -121,7 +126,7 @@ CREATE TABLE Fixed_Deposit (
 
   PRIMARY KEY (FD_ID),
   FOREIGN KEY (savings_acc) REFERENCES Savings_Account (account_no),
-  FOREIGN KEY (FD_type) REFERENCES FD_Type (type_ID)
+  FOREIGN KEY (FD_type) REFERENCES FD_Type (FD_type)
 );
 
 CREATE TABLE Transaction (
@@ -168,11 +173,11 @@ CREATE TABLE Deposit (
 
 CREATE TABLE Transfer (/*Transfer is identified as a withdrawal from one account and a deposit to another*/
   transfer_ID  VARCHAR(10),
-  withdrwal_ID VARCHAR(10),
+  withdrawal_ID VARCHAR(10),
   deposit_ID   VARCHAR(10),
 
   PRIMARY KEY (transfer_ID),
-  FOREIGN KEY (withdrwal_ID) REFERENCES Withdrawal (transaction_ID),
+  FOREIGN KEY (withdrawal_ID) REFERENCES Withdrawal (transaction_ID),
   FOREIGN KEY (deposit_ID) REFERENCES Deposit (transaction_ID)
 );
 
@@ -317,15 +322,17 @@ INSERT INTO customer (customer_ID, customer_type) VALUES ('C00001', 'Individual'
 INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
 VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
 
-INSERT INTO employee (employee_ID, branch, NIC, first_name, last_name, address, telephone)
-VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422');
+INSERT INTO employee (employee_ID, branch, NIC, first_name, last_name, address, telephone, salary)
+VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422', 25000);
 
-INSERT INTO manager (branch, employee_ID) VALUES ('B001', 'E00001');
+INSERT INTO manager (employee_ID) VALUES ('E00001');
+
+UPDATE Branch SET employee_ID = 'E00001' WHERE branch_ID = 'B001';
 
 INSERT INTO account (account_no, customer_ID, branch_ID, balance)
 VALUES ('0000000001', 'C00001', 'B001', '100000');
 
-INSERT INTO savings_account_type (type_ID, type, interest_rate, minimum)
+INSERT INTO savings_account_type (account_type, type, interest_rate, minimum)
 VALUES ('01', 'Adult', '3.22', '1000.00');
 
 INSERT INTO savings_account (account_no, account_type) VALUES ('1', '01');
@@ -335,7 +342,7 @@ VALUES ('0000000002', 'C00001', 'B001', '25000');
 
 INSERT INTO current_account (account_no, OD_amount) VALUES ('2', '10000.00');
 
-INSERT INTO fd_type (type_ID, type, interest_rate)
+INSERT INTO fd_type (FD_type, type, interest_rate)
 VALUES ('01', '6 month', '13.00'), ('02', '12 month', '14.00'), ('03', '3 month', '15.00');
 
 INSERT INTO fixed_deposit (FD_ID, savings_acc, FD_type) VALUES ('1', '1', '01');
@@ -364,26 +371,103 @@ CREATE VIEW offline_loan_view AS
   SELECT *
   FROM Loan_Request NATURAL JOIN (Loan NATURAL JOIN Offline_Loan);
 
+CREATE VIEW branch_view AS
+  SELECT Branch.branch_ID, branch_name, city, first_name, last_name, telephone
+  FROM (Employee NATURAL JOIN Manager) NATURAL JOIN Branch;
+
+CREATE VIEW transfer_view AS
+  SELECT T.transfer_ID AS transfer_ID,
+         W.account_no AS from_acc,
+         D.account_no AS to_acc,
+         W.amount AS amount,
+         W.branch AS branch,
+         W.time_stamp as time_stamp
+  FROM ((Transaction W JOIN Transfer T ON transaction_ID = withdrawal_ID))
+         JOIN
+           ((Transaction D JOIN Transfer ON transaction_ID = deposit_ID));
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
-#User account creation and privilege assignment
+#User account creation
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
+DROP USER IF EXISTS 'employee'@'localhost';
+DROP USER IF EXISTS 'customer'@'localhost';
+DROP USER IF EXISTS 'manager'@'localhost';
+
+
+CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
+CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
+CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
+
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Creation of roles
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
+DROP ROLE IF EXISTS 'standard_privileges';
+DROP ROLE IF EXISTS 'employee_role';
+
+CREATE ROLE 'standard_privileges';
+  GRANT SELECT ON current_account_view TO 'standard_privileges';
+  GRANT SELECT ON savings_account_view TO 'standard_privileges';
+  GRANT SELECT ON online_Loan_view TO 'standard_privileges';
+  GRANT SELECT ON offline_loan_view TO 'standard_privileges';
+  GRANT SELECT ON branch_view TO 'standard_privileges';
+  GRANT SELECT ON Organization TO 'standard_privileges';
+  GRANT SELECT ON Individual TO 'standard_privileges';
+  GRANT SELECT ON transfer_view TO 'standard_privileges';
+  GRANT SELECT ON ATM_Withdrawals TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Deposit TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Transfer TO 'standard_privileges';
+  GRANT SELECT, INSERT ON Loan_Request TO 'standard_privileges';
+
+CREATE ROLE 'employee_role';
+  GRANT 'standard_privileges' TO 'employee_role';
+  GRANT INSERT ON Customer TO 'employee_role';
+  GRANT INSERT ON Individual TO 'employee_role';
+  GRANT INSERT ON Organization TO 'employee_role';
+  GRANT INSERT ON Fixed_Deposit TO 'employee_role';
+  GRANT INSERT, UPDATE ON Account TO 'employee_role';
+  GRANT INSERT, UPDATE ON Savings_Account TO 'employee_role';
+  GRANT INSERT, UPDATE ON Current_Account TO 'employee_role';
+
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Privilege and role assignment to users
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
 
 #Customer account and privileges
-CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
+GRANT 'standard_privileges' TO 'customer'@'localhost';
 
-GRANT ALL PRIVILEGES ON Individual TO 'customer'@'localhost';
-GRANT ALL PRIVILEGES ON Organization TO 'customer'@'localhost';
-GRANT SELECT, INSERT, DELETE ON Loan_Request TO 'customer'@'localhost';
+GRANT INSERT ON ATM_Withdrawals TO 'customer'@'localhost';
+GRANT INSERT ON Loan TO 'customer'@'localhost';
+GRANT INSERT ON Offline_Loan TO 'customer'@'localhost';
+GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
+GRANT UPDATE ON Individual TO 'customer'@'localhost';
+GRANT UPDATE ON Organization TO 'customer'@'localhost';
 
-CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
 
-GRANT SELECT ,DELETE , INSERT, UPDATE ON * TO 'employee'@'localhost';
+#Non managerial employee account and privileges
+GRANT 'employee_role' TO 'employee'@'localhost';
 
-CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
 
-GRANT ALL PRIVILEGES ON * TO 'manager'@'localhost';
+#Manager account and privileges
+GRANT 'employee_role' TO 'manager'@'localhost';
+
+GRANT INSERT ON Offline_Loan TO 'manager'@'localhost';
+GRANT ALL PRIVILEGES ON Employee TO 'manager'@'localhost';
+
+
