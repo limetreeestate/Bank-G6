@@ -464,19 +464,7 @@ CREATE PROCEDURE transfer_transaction(
   END $$
 
 DELIMITER ;
-/*SET AUTOCOMMIT = 0;
-START TRANSACTION;
 
-UPDATE Account
-SET balance = balance - 1000
-WHERE customer_ID = 'C00001';
-
-UPDATE Account
-SET balance = balance + 1000
-WHERE customer_ID = 'C00002';
-
-COMMIT;
-SET AUTOCOMMIT = 1;*/
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
