@@ -37,7 +37,7 @@ CREATE ROLE 'standard_privileges';
   GRANT SELECT ON Organization TO 'standard_privileges';
   GRANT SELECT ON Individual TO 'standard_privileges';
   GRANT SELECT ON transfer_view TO 'standard_privileges';
-  GRANT SELECT ON ATM_Withdrawals TO 'standard_privileges';
+  GRANT SELECT ON ATM_Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
   GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
@@ -66,7 +66,7 @@ CREATE ROLE 'employee_role';
 #Customer account and privileges
 GRANT 'standard_privileges' TO 'customer'@'localhost';
 
-GRANT INSERT ON ATM_Withdrawals TO 'customer'@'localhost';
+GRANT INSERT ON ATM_Withdrawal TO 'customer'@'localhost';
 GRANT INSERT ON Loan TO 'customer'@'localhost';
 GRANT INSERT ON Offline_Loan TO 'customer'@'localhost';
 GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
