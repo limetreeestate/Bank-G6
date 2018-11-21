@@ -79,7 +79,7 @@ CREATE TABLE Account (
   account_no  INT(10),
   customer_ID VARCHAR(6),
   branch_ID   VARCHAR(4),
-  balance     DECIMAL(11, 2), /*Does not check negative balance to handle cases of debt*/
+  balance     DECIMAL(11, 2) CHECK (balance > 0),
 
   PRIMARY KEY (account_no),
   FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID),
