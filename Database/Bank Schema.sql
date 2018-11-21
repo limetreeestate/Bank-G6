@@ -79,7 +79,7 @@ CREATE TABLE Account (
   account_no  INT(10),
   customer_ID VARCHAR(6),
   branch_ID   VARCHAR(4),
-  balance     DECIMAL(11, 2), /*Does not check negative balance to handle cases of debt*/
+  balance     DECIMAL(11, 2) CHECK (balance > 0),
 
   PRIMARY KEY (account_no),
   FOREIGN KEY (customer_ID) REFERENCES Customer (customer_ID),
@@ -231,6 +231,15 @@ CREATE TABLE Offline_Loan (
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
 
+USE bank_demo;
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+#Trigger declaration
+#
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#
+
 /*Check if customer has valid NIC and valid names*/
 DELIMITER $$
 CREATE TRIGGER check_customer_details BEFORE INSERT ON Individual
@@ -254,6 +263,7 @@ DELIMITER $$
 CREATE TRIGGER check_employee_details BEFORE INSERT ON Employee
   FOR EACH ROW
   BEGIN
+    SET NEW.password = SHA1(NEW.password); #Encrypt employee password with SHA1 encoding
     IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
     THEN
       SIGNAL SQLSTATE '12343'
@@ -292,17 +302,11 @@ DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER encrypt_customer_password_trigger BEFORE INSERT ON Customer FOR EACH ROW
   BEGIN
-    SET NEW.password = SHA1(NEW.password);
+
   END $$
 DELIMITER ;
 
-/*Encrypt employee passwords to SHA1*/
-DELIMITER $$
-CREATE TRIGGER encrypt_employee_password_trigger BEFORE INSERT ON Employee FOR EACH ROW
-  BEGIN
-    SET NEW.password = SHA1(NEW.password);
-  END $$
-DELIMITER ;
+
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
@@ -311,6 +315,7 @@ DELIMITER ;
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
 
+/*METHOD OF CREATING NEW BANK TRANSACTION IDS NOT DEFINED*/
 DELIMITER $$
 
 
@@ -320,12 +325,10 @@ CREATE PROCEDURE standard_withdraw_transaction(
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-      BEGIN
-        ROLLBACK;
-      END;
-
     DECLARE t_id VARCHAR(10);
+    DECLARE transaction_error BOOL DEFAULT 0;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION SET transaction_error = 1;
+
     SET t_id = '';
 
     SET AUTOCOMMIT = 0;
@@ -344,7 +347,11 @@ CREATE PROCEDURE standard_withdraw_transaction(
     SET balance = balance - withraw_amount
     WHERE account_no = acc_no;
 
-    COMMIT;
+    if (transaction_error) THEN
+      ROLLBACK ;
+    ELSE
+      COMMIT ;
+    END IF ;
 
   END $$
 
@@ -354,12 +361,12 @@ CREATE PROCEDURE ATM_withdraw_transaction(
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-      BEGIN
-        ROLLBACK;
-      END;
-
     DECLARE t_id VARCHAR(10);
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      ROLLBACK;
+    END;
+
     SET t_id = '';
 
     SET AUTOCOMMIT = 0;
@@ -388,12 +395,12 @@ CREATE PROCEDURE deposit_transaction(
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-      BEGIN
-        ROLLBACK;
-      END;
-
     DECLARE t_id VARCHAR(10);
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      ROLLBACK;
+    END;
+
     SET t_id = '';
 
     SET AUTOCOMMIT = 0;
@@ -420,14 +427,15 @@ CREATE PROCEDURE transfer_transaction(
   transfer_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
-      BEGIN
-        ROLLBACK;
-      END;
-
     DECLARE from_transaction VARCHAR(10);
     DECLARE to_transaction VARCHAR(10);
     DECLARE curr_time TIMESTAMP;
+
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      ROLLBACK;
+    END;
+
 
     SET from_transaction = '';
     SET to_transaction = '';
@@ -458,6 +466,41 @@ CREATE PROCEDURE transfer_transaction(
     UPDATE Account
     SET balance = balance + transfer_amount
     WHERE account_no = to_acc;
+
+    COMMIT;
+
+  END $$
+
+/*Procedure to do an online loan (Unsure)*/
+CREATE PROCEDURE online_loan_transaction(
+  request_ID      VARCHAR(6),
+  c_ID          VARCHAR(6),
+  loan_amount               DECIMAL(11, 2), /*Negative loan amount invalid*/
+  period    INT(3) /*Unsure*/,
+  income     DECIMAL(11, 2), /*Negative applicant income is invalid*/
+  profession VARCHAR(20),
+  office_addr       VARCHAR(100),
+  l_ID         VARCHAR(6),
+  i_rate   DECIMAL(4, 2), /*Negative loan interest rates invalid*/
+  install     DECIMAL(11, 2),
+  FDID   INT(10)) MODIFIES SQL DATA
+  BEGIN
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+      ROLLBACK;
+    END;
+
+    SET AUTOCOMMIT = 0;
+    START TRANSACTION;
+
+    INSERT INTO Loan_request
+    VALUES (request_ID, c_ID,loan_amount, period, income, profession, office_addr);
+
+    INSERT INTO Loan
+    VALUES (l_ID, request_ID, i_rate, install);
+
+    INSERT INTO Online_Loan
+    VALUES (l_ID, FDID);
 
     COMMIT;
 
@@ -583,7 +626,7 @@ CREATE ROLE 'standard_privileges';
   GRANT SELECT ON Organization TO 'standard_privileges';
   GRANT SELECT ON Individual TO 'standard_privileges';
   GRANT SELECT ON transfer_view TO 'standard_privileges';
-  GRANT SELECT ON ATM_Withdrawals TO 'standard_privileges';
+  GRANT SELECT ON ATM_Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
   GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
@@ -612,7 +655,7 @@ CREATE ROLE 'employee_role';
 #Customer account and privileges
 GRANT 'standard_privileges' TO 'customer'@'localhost';
 
-GRANT INSERT ON ATM_Withdrawals TO 'customer'@'localhost';
+GRANT INSERT ON ATM_Withdrawal TO 'customer'@'localhost';
 GRANT INSERT ON Loan TO 'customer'@'localhost';
 GRANT INSERT ON Offline_Loan TO 'customer'@'localhost';
 GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
