@@ -11,13 +11,13 @@ SET AUTOCOMMIT = 1;
 INSERT INTO branch (branch_ID, branch_name, city)
 VALUES ('B001', 'branch1', 'city1'), ('B002', 'branch2', 'city2');
 
-INSERT INTO customer (customer_ID, customer_type) VALUES ('C00001', 'Individual'), ('C00002', 'Organization');
+INSERT INTO customer (customer_ID, customer_type, password) VALUES ('C00001', 'Individual', 'asdf'), ('C00002', 'Organization', 'ssss');
 
 INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
 VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
 
 INSERT INTO employee (employee_ID, branch, NIC, first_name, last_name, address, telephone, salary, password)
-VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422', 25000, 'asd');
+VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422', 25000, 'asdf');
 
 INSERT INTO manager (employee_ID) VALUES ('E00001');
 

@@ -68,10 +68,8 @@ GRANT 'standard_privileges' TO 'customer'@'localhost';
 
 GRANT INSERT ON ATM_Withdrawal TO 'customer'@'localhost';
 GRANT INSERT ON Loan TO 'customer'@'localhost';
-GRANT INSERT ON Offline_Loan TO 'customer'@'localhost';
+GRANT INSERT ON Online_loan TO 'customer'@'localhost';
 GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
-GRANT UPDATE ON Individual TO 'customer'@'localhost';
-GRANT UPDATE ON Organization TO 'customer'@'localhost';
 
 
 #Non managerial employee account and privileges
