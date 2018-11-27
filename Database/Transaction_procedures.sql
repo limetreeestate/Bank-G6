@@ -7,15 +7,13 @@ DELIMITER $$
 
 /*Procedure to do a standard withdrawal*/
 CREATE PROCEDURE standard_withdraw_transaction(
+  t_id VARCHAR(10),
   acc_no INT(10),
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE t_id VARCHAR(10);
     DECLARE transaction_error BOOL DEFAULT 0;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION SET transaction_error = 1;
-
-    SET t_id = '';
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET transaction_error = 1;
 
     SET AUTOCOMMIT = 0;
     START TRANSACTION;
@@ -39,21 +37,21 @@ CREATE PROCEDURE standard_withdraw_transaction(
       COMMIT ;
     END IF ;
 
+    SET AUTOCOMMIT = 1;
+
   END $$
 
 /*Procedure to do an ATM withdrawal*/
 CREATE PROCEDURE ATM_withdraw_transaction(
+  t_id VARCHAR(10),
   acc_no INT(10),
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE t_id VARCHAR(10);
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
       END;
-
-    SET t_id = '';
 
     SET AUTOCOMMIT = 0;
     START TRANSACTION;
@@ -73,21 +71,21 @@ CREATE PROCEDURE ATM_withdraw_transaction(
 
     COMMIT;
 
+    SET AUTOCOMMIT = 1;
+
   END $$
 
 /*Procedure to do a deposit*/
 CREATE PROCEDURE deposit_transaction(
+  t_id VARCHAR(10),
   acc_no INT(10),
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE t_id VARCHAR(10);
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
       BEGIN
         ROLLBACK;
       END;
-
-    SET t_id = '';
 
     SET AUTOCOMMIT = 0;
     START TRANSACTION;
@@ -104,27 +102,27 @@ CREATE PROCEDURE deposit_transaction(
 
     COMMIT;
 
+    SET AUTOCOMMIT = 1;
+
   END $$
 
 /*Procedure to do a transfer*/
 CREATE PROCEDURE transfer_transaction(
+  trans_ID VARCHAR(10),
+  from_transaction VARCHAR(10),
+  to_transaction VARCHAR(10),
   from_acc INT(10),
   to_acc INT(10),
   transfer_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE from_transaction VARCHAR(10);
-    DECLARE to_transaction VARCHAR(10);
     DECLARE curr_time TIMESTAMP;
 
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
       BEGIN
         ROLLBACK;
       END;
 
-
-    SET from_transaction = '';
-    SET to_transaction = '';
     SET curr_time = CURRENT_TIMESTAMP;
 
     SET AUTOCOMMIT = 0;
@@ -145,6 +143,9 @@ CREATE PROCEDURE transfer_transaction(
     INSERT INTO Deposit
     VALUES (to_transaction);
 
+    INSERT INTO Transfer
+    VALUES (trans_ID, from_transaction, to_transaction);
+
     UPDATE Account
     SET balance = balance - transfer_amount
     WHERE account_no = from_acc;
@@ -154,6 +155,8 @@ CREATE PROCEDURE transfer_transaction(
     WHERE account_no = to_acc;
 
     COMMIT;
+
+    SET AUTOCOMMIT = 1;
 
   END $$
 
@@ -171,7 +174,7 @@ CREATE PROCEDURE online_loan_transaction(
   install     DECIMAL(11, 2),
   FDID   INT(10)) MODIFIES SQL DATA
   BEGIN
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
       BEGIN
         ROLLBACK;
       END;
@@ -189,6 +192,8 @@ CREATE PROCEDURE online_loan_transaction(
     VALUES (l_ID, FDID);
 
     COMMIT;
+
+    SET AUTOCOMMIT = 1;
 
   END $$
 
