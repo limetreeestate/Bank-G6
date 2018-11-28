@@ -228,6 +228,9 @@ CREATE TABLE Login (
   password VARCHAR(40)  NOT NULL
 );
 
+CREATE UNIQUE INDEX Login_index ON Login(username);
+CREATE UNIQUE INDEX Customer_NIC_index ON Individual(NIC);
+CREATE UNIQUE INDEX Customer_reg_no_index ON Organization(reg_no);
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
