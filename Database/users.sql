@@ -11,11 +11,13 @@ USE bank_demo;
 DROP USER IF EXISTS 'employee'@'localhost';
 DROP USER IF EXISTS 'customer'@'localhost';
 DROP USER IF EXISTS 'manager'@'localhost';
+DROP USER IF EXISTS 'public'@'localhost';
 
 
 CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
 CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
 CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
+CREATE USER 'public'@'localhost' IDENTIFIED BY 'public123';
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -80,6 +82,9 @@ GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
 
 #Non managerial employee account and privileges
 GRANT 'employee_role' TO 'employee'@'localhost';
+
+#public account and privileges
+GRANT SELECT ON Login TO 'public'@'localhost';
 
 
 #Manager account and privileges
