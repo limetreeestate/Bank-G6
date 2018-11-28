@@ -322,8 +322,12 @@ CREATE PROCEDURE standard_withdraw_transaction(
   withraw_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
-    DECLARE transaction_error BOOL DEFAULT 0;
-    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET transaction_error = 1;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+      ROLLBACK ;
+      SIGNAL SQLSTATE '11111'
+      SET MESSAGE_TEXT = 'Withdraw error';
+    END;
 
     SET AUTOCOMMIT = 0;
     START TRANSACTION;
@@ -341,11 +345,7 @@ CREATE PROCEDURE standard_withdraw_transaction(
     SET balance = balance - withraw_amount
     WHERE account_no = acc_no;
 
-    if (transaction_error) THEN
-      ROLLBACK ;
-    ELSE
-      COMMIT ;
-    END IF ;
+    COMMIT ;
 
     SET AUTOCOMMIT = 1;
 
@@ -360,7 +360,9 @@ CREATE PROCEDURE ATM_withdraw_transaction(
   BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
-      ROLLBACK;
+      ROLLBACK ;
+      SIGNAL SQLSTATE '11112'
+      SET MESSAGE_TEXT = 'Withdraw error';
     END;
 
     SET AUTOCOMMIT = 0;
@@ -395,6 +397,8 @@ CREATE PROCEDURE deposit_transaction(
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
       ROLLBACK;
+      SIGNAL SQLSTATE '11113'
+      SET MESSAGE_TEXT = 'Deposit error';
     END;
 
     SET AUTOCOMMIT = 0;
@@ -431,6 +435,8 @@ CREATE PROCEDURE transfer_transaction(
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
       ROLLBACK;
+      SIGNAL SQLSTATE '11114'
+      SET MESSAGE_TEXT = 'Transfer error';
     END;
 
     SET curr_time = CURRENT_TIMESTAMP;
@@ -487,6 +493,8 @@ CREATE PROCEDURE online_loan_transaction(
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
       ROLLBACK;
+      SIGNAL SQLSTATE '11115'
+      SET MESSAGE_TEXT = 'Loan error';
     END;
 
     SET AUTOCOMMIT = 0;

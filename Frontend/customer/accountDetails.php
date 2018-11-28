@@ -1,3 +1,7 @@
+<?php
+include_once 'header.html'
+?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -37,8 +41,12 @@
         </div>
     </div>
 </div>
-<div class="row"></div>
-    <table>
+    <div class="row"></div>
+
+    <h5>Recent Transactions</h5>
+
+    <div class="row"></div>
+    <table class="highlight">
         <thead>
         <tr>
             <th>Timestamp</th>
@@ -53,14 +61,22 @@
             <td>-time-</td>
             <td>Withdrawal</td>
             <td>25000</td>
+            <td>122,345</td>
         </tr>
         <tr>
-            <td>Alan</td>
-            <td>Jellybean</td>
-            <td>$3.76</td>
-            <td></td>
+            <td>-time-</td>
+            <td>Deposit</td>
+            <td>50,000</td>
+            <td>147,345</td>
         </tr>
     </table>
+    <div class="row"></div>
+    <a class="waves-effect waves-light btn-large"><i class="material-icons left">print</i>
+        Print e-Statement</a>
 </div>
 </body>
 </html>
+
+<?php
+include_once 'footer.html'
+?>
