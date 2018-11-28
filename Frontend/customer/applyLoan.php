@@ -15,8 +15,8 @@ include_once 'header.html'
 <!-- INCLUDE HEADER -->
 
 <div class="container">
-    <h3 style="margin-bottom: 20px" class="teal-text text-lighten-2">LOAN APPLICATION</h3>
-    <form action="addLoan.php" method="post" class="col s8 center-align" style="margin-bottom: 40px">
+    <h4 style="margin-bottom: 20px" class="teal-text text-lighten-2">LOAN APPLICATION</h4>
+    <form action="addLoan.php" method="post" class="col s8" style="margin-bottom: 40px">
         <div class="row">
             <div class="input-field col s4">
                 <label for="acc_no">Account Number</label>
