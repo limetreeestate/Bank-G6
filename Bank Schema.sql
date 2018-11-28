@@ -214,7 +214,7 @@ INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
 VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
 
 INSERT INTO individual (NIC, customer_ID, first_name, last_name, address, DOB)
-VALUES ('123456789V', 'C00001', 'John', 'Doe', 'address1', '1996-11-06');
+VALUES ('124356789V', 'C00002', 'Sam', 'Fisher', 'address2', '1986-08-23');
 
 INSERT INTO employee (employee_ID, branch, NIC, first_name, last_name, address, telephone)
 VALUES ('E00001', 'B001', '987654321V', 'Jack', 'Sehp', 'address2', '0718591422');
@@ -223,6 +223,9 @@ INSERT INTO manager (branch, employee_ID) VALUES ('B001', 'E00001');
 
 INSERT INTO account (account_no, customer_ID, branch_ID, balance)
 VALUES ('0000000001', 'C00001', 'B001', '100000');
+
+INSERT INTO account (account_no, customer_ID, branch_ID, balance)
+VALUES ('0000000003', 'C00002', 'B001', '100000');
 
 INSERT INTO savings_account_type (type_ID, type, interest_rate, minimum)
 VALUES ('01', 'Adult', '3.22', '1000.00');
@@ -282,10 +285,10 @@ START TRANSACTION;
 
 UPDATE Account
 SET balance = balance - 1000
-WHERE customer_ID = 'C00001';
+WHERE customer_ID = 'C00001' AND  account_no = 1;
 
 UPDATE Account
 SET balance = balance + 1000
-WHERE customer_ID = 'C00002';
+WHERE customer_ID = 'C00002' AND account_no = 3;
 
 COMMIT;
