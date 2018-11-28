@@ -228,6 +228,9 @@ CREATE TABLE Login (
   password VARCHAR(40)  NOT NULL
 );
 
+CREATE UNIQUE INDEX Login_index ON Login(username);
+CREATE UNIQUE INDEX Customer_NIC_index ON Individual(NIC);
+CREATE UNIQUE INDEX Customer_reg_no_index ON Organization(reg_no);
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -636,6 +639,11 @@ DROP ROLE IF EXISTS 'standard_privileges';
 DROP ROLE IF EXISTS 'employee_role';
 
 CREATE ROLE 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE standard_withdraw_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE ATM_withdraw_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE deposit_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE transfer_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE online_loan_transaction TO 'standard_privileges';
   GRANT SELECT ON current_account_view TO 'standard_privileges';
   GRANT SELECT ON savings_account_view TO 'standard_privileges';
   GRANT SELECT ON online_Loan_view TO 'standard_privileges';
@@ -645,6 +653,7 @@ CREATE ROLE 'standard_privileges';
   GRANT SELECT ON Individual TO 'standard_privileges';
   GRANT SELECT ON transfer_view TO 'standard_privileges';
   GRANT SELECT ON ATM_Withdrawal TO 'standard_privileges';
+  GRANT SELECT ON Login TO 'standard_privileges';
   GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
   GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
@@ -688,5 +697,11 @@ GRANT 'employee_role' TO 'manager'@'localhost';
 
 GRANT INSERT ON Offline_Loan TO 'manager'@'localhost';
 GRANT ALL PRIVILEGES ON Employee TO 'manager'@'localhost';
+
+
+
+SET DEFAULT ROLE 'standard_privileges' FOR 'customer'@'localhost';
+SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
+SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
 
 
