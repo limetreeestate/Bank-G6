@@ -26,7 +26,8 @@ include_once 'header.html'
                 <label for="FD_id">Fixed Deposit ID</label>
                 <input id="FD_id" name="FD_id" type="text" class="validate" required>
             </div>
-        </div>
+        <
+            /div>
         <div class="row">
             <div class="input-field col s8">
                 <label for="loan_amount">Loan Amount</label>
@@ -46,13 +47,13 @@ include_once 'header.html'
         <div class="row">
             <div class="input-field col s8">
                 <label for="profession">Applicant Profession</label>
-                <input id="profession" type="text" class="validate" required>
+                <input name="profession" id="profession" type="text" class="validate" required>
             </div>
         </div>
         <div class="row">
             <div  class="input-field col s8">
                 <label for="address">Professional Address</label>
-                <input id="address" type="text" class="validate" required>
+                <input name="address" id="address" type="text" class="validate" required>
             </div>
         </div>
         <button class="btn waves-effect waves-light" type="submit" name="action">Submit
