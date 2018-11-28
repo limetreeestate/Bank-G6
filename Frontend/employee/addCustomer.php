@@ -63,6 +63,7 @@ include_once 'header.html'
             <i class="material-icons right">send</i>
 
         </button>
+        <div class="row" style="margin-bottom: 40px"></div>
     </form>
 </div>
 
