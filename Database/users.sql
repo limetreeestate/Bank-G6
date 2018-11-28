@@ -38,6 +38,7 @@ CREATE ROLE 'standard_privileges';
   GRANT SELECT ON Individual TO 'standard_privileges';
   GRANT SELECT ON transfer_view TO 'standard_privileges';
   GRANT SELECT ON ATM_Withdrawal TO 'standard_privileges';
+  GRANT SELECT ON Login TO 'standard_privileges';
   GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
   GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
