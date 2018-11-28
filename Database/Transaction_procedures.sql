@@ -79,7 +79,7 @@ CREATE PROCEDURE ATM_withdraw_transaction(
 CREATE PROCEDURE deposit_transaction(
   t_id VARCHAR(10),
   acc_no INT(10),
-  withraw_amount DECIMAL(11,2),
+  deposit_amount DECIMAL(11,2),
   branch_ID VARCHAR(4) ) MODIFIES SQL DATA
   BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -91,13 +91,13 @@ CREATE PROCEDURE deposit_transaction(
     START TRANSACTION;
 
     INSERT INTO Transaction
-    VALUES (t_id, acc_no, withraw_amount, branch_ID, CURRENT_TIMESTAMP);
+    VALUES (t_id, acc_no, deposit_amount, branch_ID, CURRENT_TIMESTAMP);
 
     INSERT INTO Deposit
     VALUES (t_id);
 
     UPDATE Account
-    SET balance = balance + withraw_amount
+    SET balance = balance + deposit_amount
     WHERE account_no = acc_no;
 
     COMMIT;

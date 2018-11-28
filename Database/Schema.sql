@@ -155,7 +155,7 @@ CREATE TABLE Standard_Withdrawal (
   FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
 );
 
-CREATE TABLE ATM_Withdrawals (
+CREATE TABLE ATM_Withdrawal (
   transaction_ID VARCHAR(10),
   ATM_ID         VARCHAR(10),
 
