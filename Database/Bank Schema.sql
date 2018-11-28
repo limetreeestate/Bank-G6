@@ -690,3 +690,9 @@ GRANT INSERT ON Offline_Loan TO 'manager'@'localhost';
 GRANT ALL PRIVILEGES ON Employee TO 'manager'@'localhost';
 
 
+
+SET DEFAULT ROLE 'standard_privileges' FOR 'customer'@'localhost';
+SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
+SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
+
+
