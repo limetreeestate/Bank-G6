@@ -10,6 +10,7 @@ include_once 'header.html'
 	<link rel="stylesheet" href="../../include/css/materialize.min.css">
 	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 	<script type="text/javascript" src="../../include/js/materialize.js"></script>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<script>
         $(document).ready(function(){
             $('.datepicker').datepicker();
@@ -60,7 +61,7 @@ include_once 'header.html'
 			</div>
 		</div>
 		<button class="btn waves-effect waves-light" type="submit" name="action">Submit
-    		<i class="material-icons right"></i>
+    		<i class="material-icons right">send</i>
   		</button>
 	</form>
 </div>
