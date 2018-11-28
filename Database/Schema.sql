@@ -13,7 +13,6 @@ USE Bank_demo;
 
 CREATE TABLE Customer (
   customer_ID   VARCHAR(6),
-  password VARCHAR(40),
   customer_type ENUM ('Individual', 'Organization'),
   PRIMARY KEY (customer_ID)
 );
@@ -58,7 +57,6 @@ CREATE TABLE Employee (
   address     VARCHAR(100)       NOT NULL,
   telephone   INT(10)            NOT NULL,
   salary      INT(10)            NOT NULL,
-  password    VARCHAR(40)        NOT NULL,
 
   PRIMARY KEY (employee_ID),
   FOREIGN KEY (branch) REFERENCES Branch (branch_ID)
@@ -225,7 +223,7 @@ CREATE TABLE Offline_Loan (
 );
 
 CREATE TABLE Login (
-  user_ID VARCHAR(6) PRIMARY KEY,
-  username VARCHAR(25) UNIQUE NOT NULL CHECK (username NOT LIKE "% %"),
-  password VARCHAR(40) NOT NULL
-)
+  user_ID VARCHAR(6)    PRIMARY KEY,
+  username VARCHAR(25)  UNIQUE NOT NULL CHECK (username NOT LIKE "% %"),
+  password VARCHAR(40)  NOT NULL
+);

@@ -13,7 +13,6 @@ USE Bank_demo;
 
 CREATE TABLE Customer (
   customer_ID   VARCHAR(6),
-  password VARCHAR(40),
   customer_type ENUM ('Individual', 'Organization'),
   PRIMARY KEY (customer_ID)
 );
@@ -58,7 +57,6 @@ CREATE TABLE Employee (
   address     VARCHAR(100)       NOT NULL,
   telephone   INT(10)            NOT NULL,
   salary      INT(10)            NOT NULL,
-  password    VARCHAR(40)        NOT NULL,
 
   PRIMARY KEY (employee_ID),
   FOREIGN KEY (branch) REFERENCES Branch (branch_ID)
@@ -73,7 +71,7 @@ CREATE TABLE Manager (
 );
 
 ALTER TABLE Branch
-    ADD FOREIGN KEY (employee_ID) REFERENCES Manager(employee_ID);
+  ADD FOREIGN KEY (employee_ID) REFERENCES Manager(employee_ID);
 
 CREATE TABLE Account (
   account_no  INT(10),
@@ -157,7 +155,7 @@ CREATE TABLE Standard_Withdrawal (
   FOREIGN KEY (transaction_ID) REFERENCES Withdrawal (transaction_ID)
 );
 
-CREATE TABLE ATM_Withdrawal (
+CREATE TABLE ATM_Withdrawals (
   transaction_ID VARCHAR(10),
   ATM_ID         VARCHAR(10),
 
@@ -223,6 +221,14 @@ CREATE TABLE Offline_Loan (
   FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID),
   FOREIGN KEY (approved_by) REFERENCES Manager (employee_ID)
 );
+
+CREATE TABLE Login (
+  user_ID VARCHAR(6)    PRIMARY KEY,
+  username VARCHAR(25)  UNIQUE NOT NULL CHECK (username NOT LIKE '% %'),
+  password VARCHAR(40)  NOT NULL
+);
+
+
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
@@ -230,16 +236,7 @@ CREATE TABLE Offline_Loan (
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #
-
-USE bank_demo;
-#
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#
-#Trigger declaration
-#
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#
-
+USE Bank_demo;
 /*Check if customer has valid NIC and valid names*/
 DELIMITER $$
 CREATE TRIGGER check_customer_details BEFORE INSERT ON Individual
@@ -263,7 +260,6 @@ DELIMITER $$
 CREATE TRIGGER check_employee_details BEFORE INSERT ON Employee
   FOR EACH ROW
   BEGIN
-    SET NEW.password = SHA1(NEW.password); #Encrypt employee password with SHA1 encoding
     IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
     THEN
       SIGNAL SQLSTATE '12343'
@@ -300,7 +296,7 @@ DELIMITER ;
 
 /*Encrypt customer passwords to SHA1*/
 DELIMITER $$
-CREATE TRIGGER encrypt_customer_password_trigger BEFORE INSERT ON Customer FOR EACH ROW
+CREATE TRIGGER user_password_trigger BEFORE INSERT ON Login FOR EACH ROW
   BEGIN
     SET NEW.password = SHA1(NEW.password);
   END $$
