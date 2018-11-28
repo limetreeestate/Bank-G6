@@ -64,6 +64,7 @@ include_once 'header.html'
     		<i class="material-icons right">send</i>
   		</button>
 	</form>
+    <div class="row" style="margin-bottom: 40px"></div>
 </div>
 
 	<!-- INCLUDE FOOTER -->
