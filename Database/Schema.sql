@@ -223,3 +223,9 @@ CREATE TABLE Offline_Loan (
   FOREIGN KEY (loan_ID) REFERENCES Loan (loan_ID),
   FOREIGN KEY (approved_by) REFERENCES Manager (employee_ID)
 );
+
+CREATE TABLE Login (
+  user_ID VARCHAR(6) PRIMARY KEY,
+  username VARCHAR(25) UNIQUE NOT NULL CHECK (username NOT LIKE "% %"),
+  password VARCHAR(40) NOT NULL
+)

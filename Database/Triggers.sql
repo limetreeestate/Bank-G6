@@ -30,7 +30,6 @@ DELIMITER $$
 CREATE TRIGGER check_employee_details BEFORE INSERT ON Employee
   FOR EACH ROW
   BEGIN
-    SET NEW.password = SHA1(NEW.password); #Encrypt employee password with SHA1 encoding
     IF (NEW.NIC REGEXP '[0-9]{9}[X|V]') = 0
     THEN
       SIGNAL SQLSTATE '12343'
@@ -67,7 +66,7 @@ DELIMITER ;
 
 /*Encrypt customer passwords to SHA1*/
 DELIMITER $$
-CREATE TRIGGER encrypt_customer_password_trigger BEFORE INSERT ON Customer FOR EACH ROW
+CREATE TRIGGER user_password_trigger BEFORE INSERT ON Login FOR EACH ROW
   BEGIN
     SET NEW.password = SHA1(NEW.password);
   END $$
