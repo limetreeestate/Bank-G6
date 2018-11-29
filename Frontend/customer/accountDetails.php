@@ -73,6 +73,7 @@ include_once 'header.html'
     <div class="row"></div>
     <a class="waves-effect waves-light btn-large"><i class="material-icons left">print</i>
         Print e-Statement</a>
+    <div class="row" style="margin-bottom: 20px"></div>
 </div>
 </body>
 </html>

@@ -11,11 +11,13 @@ USE bank_demo;
 DROP USER IF EXISTS 'employee'@'localhost';
 DROP USER IF EXISTS 'customer'@'localhost';
 DROP USER IF EXISTS 'manager'@'localhost';
+DROP USER IF EXISTS 'public'@'localhost';
 
 
 CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
 CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
 CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
+CREATE USER 'public'@'localhost' IDENTIFIED BY 'public123';
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,6 +31,11 @@ DROP ROLE IF EXISTS 'standard_privileges';
 DROP ROLE IF EXISTS 'employee_role';
 
 CREATE ROLE 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE standard_withdraw_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE ATM_withdraw_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE deposit_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE transfer_transaction TO 'standard_privileges';
+  GRANT EXECUTE ON PROCEDURE online_loan_transaction TO 'standard_privileges';
   GRANT SELECT ON current_account_view TO 'standard_privileges';
   GRANT SELECT ON savings_account_view TO 'standard_privileges';
   GRANT SELECT ON online_Loan_view TO 'standard_privileges';
@@ -38,6 +45,7 @@ CREATE ROLE 'standard_privileges';
   GRANT SELECT ON Individual TO 'standard_privileges';
   GRANT SELECT ON transfer_view TO 'standard_privileges';
   GRANT SELECT ON ATM_Withdrawal TO 'standard_privileges';
+  GRANT SELECT ON Login TO 'standard_privileges';
   GRANT SELECT, INSERT ON Transaction TO 'standard_privileges';
   GRANT SELECT, INSERT ON Withdrawal TO 'standard_privileges';
   GRANT SELECT, INSERT ON Standard_Withdrawal TO 'standard_privileges';
@@ -74,6 +82,9 @@ GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
 
 #Non managerial employee account and privileges
 GRANT 'employee_role' TO 'employee'@'localhost';
+
+#public account and privileges
+GRANT SELECT ON Login TO 'public'@'localhost';
 
 
 #Manager account and privileges
