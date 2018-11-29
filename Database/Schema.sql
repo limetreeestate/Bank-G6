@@ -88,7 +88,7 @@ CREATE TABLE Savings_Account_Type (
   account_type       VARCHAR(2),
   type          VARCHAR(10),
   interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative savings account interest rates invalid*/
-  minimum       DECIMAL(11, 2) CHECK (minimum > 0),
+  minimum       DECIMAL(11, 2) CHECK (minimum >= 0),
 
   PRIMARY KEY (account_type)
 );
