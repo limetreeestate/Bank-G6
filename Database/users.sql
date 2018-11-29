@@ -75,8 +75,7 @@ CREATE ROLE 'employee_role';
 GRANT 'standard_privileges' TO 'customer'@'localhost';
 
 GRANT INSERT ON ATM_Withdrawal TO 'customer'@'localhost';
-GRANT INSERT ON Loan TO 'customer'@'localhost';
-GRANT INSERT ON Online_loan TO 'customer'@'localhost';
+GRANT EXECUTE ON PROCEDURE online_loan_transaction TO 'customer'@'localhost';
 GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
 
 
@@ -97,3 +96,6 @@ GRANT ALL PRIVILEGES ON Employee TO 'manager'@'localhost';
 SET DEFAULT ROLE 'standard_privileges' FOR 'customer'@'localhost';
 SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
 SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
+
+
+REVOKE INSERT ON Loan_Request FROM 'customer'@'localhost';
