@@ -14,8 +14,8 @@ if (isset($_POST['submit']))
 
     foreach ($statement -> fetch(PDO::FETCH_ASSOC) as $row)
     {
-        $_SESSION['customer_ID'];
-        header('customer/home.php');
+        $_SESSION['manager_ID'];
+        header('manager/home.php');
     }
 
 }
