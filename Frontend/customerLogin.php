@@ -11,10 +11,10 @@ if (isset($_POST['submit']))
 {
     $statement= $pdo -> prepare("SELECT * FROM Login WHERE username = ? AND password = ?");
     $statement -> execute(array($_POST['username'], $_POST['password']));
-
-    foreach ($statement -> fetch(PDO::FETCH_ASSOC) as $row)
+    $row = $statement -> fetch(PDO::FETCH_ASSOC);
+    if (count($row) == 1)
     {
-        $_SESSION['customer_ID'];
+        $_SESSION['customer_ID'] = $row['user_ID'];
         header('customer/home.php');
     }
 
