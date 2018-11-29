@@ -88,7 +88,7 @@ CREATE TABLE Savings_Account_Type (
   account_type       VARCHAR(2),
   type          VARCHAR(10),
   interest_rate DECIMAL(4, 2) CHECK (interest_rate >= 0), /*Negative savings account interest rates invalid*/
-  minimum       DECIMAL(11, 2) CHECK (minimum > 0),
+  minimum       DECIMAL(11, 2) CHECK (minimum >= 0),
 
   PRIMARY KEY (account_type)
 );
@@ -227,3 +227,7 @@ CREATE TABLE Login (
   username VARCHAR(25)  UNIQUE NOT NULL CHECK (username NOT LIKE "% %"),
   password VARCHAR(40)  NOT NULL
 );
+
+CREATE UNIQUE INDEX Login_index ON Login(username);
+CREATE UNIQUE INDEX Customer_NIC_index ON Individual(NIC);
+CREATE UNIQUE INDEX Customer_reg_no_index ON Organization(reg_no);

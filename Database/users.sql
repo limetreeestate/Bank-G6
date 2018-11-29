@@ -11,11 +11,13 @@ USE bank_demo;
 DROP USER IF EXISTS 'employee'@'localhost';
 DROP USER IF EXISTS 'customer'@'localhost';
 DROP USER IF EXISTS 'manager'@'localhost';
+DROP USER IF EXISTS 'public'@'localhost';
 
 
 CREATE USER 'customer'@'localhost' IDENTIFIED BY 'customer123';
 CREATE USER 'employee'@'localhost' IDENTIFIED BY 'employee123';
 CREATE USER 'manager'@'localhost' IDENTIFIED BY 'manager123';
+CREATE USER 'public'@'localhost' IDENTIFIED BY 'public123';
 
 #
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,13 +75,15 @@ CREATE ROLE 'employee_role';
 GRANT 'standard_privileges' TO 'customer'@'localhost';
 
 GRANT INSERT ON ATM_Withdrawal TO 'customer'@'localhost';
-GRANT INSERT ON Loan TO 'customer'@'localhost';
-GRANT INSERT ON Online_loan TO 'customer'@'localhost';
+GRANT EXECUTE ON PROCEDURE online_loan_transaction TO 'customer'@'localhost';
 GRANT DELETE ON Loan_Request TO 'customer'@'localhost';
 
 
 #Non managerial employee account and privileges
 GRANT 'employee_role' TO 'employee'@'localhost';
+
+#public account and privileges
+GRANT SELECT ON Login TO 'public'@'localhost';
 
 
 #Manager account and privileges
@@ -92,3 +96,6 @@ GRANT ALL PRIVILEGES ON Employee TO 'manager'@'localhost';
 SET DEFAULT ROLE 'standard_privileges' FOR 'customer'@'localhost';
 SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
 SET DEFAULT ROLE 'employee_role' FOR 'employee'@'localhost';
+
+
+REVOKE INSERT ON Loan_Request FROM 'customer'@'localhost';
