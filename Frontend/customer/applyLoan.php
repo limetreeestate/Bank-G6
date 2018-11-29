@@ -26,8 +26,7 @@ include_once 'header.html'
                 <label for="FD_id">Fixed Deposit ID</label>
                 <input id="FD_id" name="FD_id" type="text" class="validate" required>
             </div>
-        <
-            /div>
+        </div>
         <div class="row">
             <div class="input-field col s8">
                 <label for="loan_amount">Loan Amount</label>
