@@ -87,27 +87,38 @@ VALUES ('0000000001', 'C00001', 'B001', '100000'),
        ('0000000003', 'C00003', 'B003', '50000'),
        ('0000000004', 'C00003', 'B004', '125000'),
        ('0000000005', 'C00004', 'B005', '150000'),
-       ('0000000006', 'C00005', 'B005', '80000'),
-       ('0000000007', 'C00005', 'B006', '90000'),
+       ('0000000006', 'C00005', 'B005', '80000');
+
+INSERT INTO savings_account_type (account_type, type, interest_rate, minimum)
+VALUES ('01', 'Child', '12', '0.00'),
+       ('02', 'Teen', '11', '500.00'),
+       ('03', 'Adult', '10', '1000.00'),
+       ('04', 'Senior', '13', '1000.00');
+
+INSERT INTO savings_account (account_no, account_type)
+VALUES ('0000000001', '01'),
+       ('0000000002', '04'),
+       ('0000000003', '02'),
+       ('0000000004', '03'),
+       ('0000000005', '03'),
+       ('0000000006', '03');
+
+INSERT INTO account (account_no, customer_ID, branch_ID, balance)
+VALUES ('0000000007', 'C00005', 'B006', '90000'),
        ('0000000008', 'C00006', 'B007', '25000'),
        ('0000000009', 'C00006', 'B008', '1000'),
        ('0000000010', 'C00007', 'B009', '10000');
 
-INSERT INTO savings_account_type (account_type, type, interest_rate, minimum)
-VALUES ('01', 'Child', '12', '0.00');
-
-INSERT INTO savings_account (account_no, account_type)
-VALUES ('1', '01');
-
-INSERT INTO account (account_no, customer_ID, branch_ID, balance)
-VALUES ('0000000002', 'C00001', 'B001', '25000');
-
-INSERT INTO current_account (account_no, OD_amount) VALUES ('2', '10000.00');
+INSERT INTO current_account (account_no, OD_amount)
+VALUES ('0000000007', '10000.00'),
+       ('0000000008', '100000.00'),
+       ('0000000009', '200000.00'),
+       ('0000000010', '250000.00');
 
 INSERT INTO fd_type (FD_type, type, interest_rate)
 VALUES ('01', '6 month', '13.00'),
   ('02', '12 month', '14.00'),
-  ('03', '3 month', '15.00');
+  ('03', '3 year', '15.00');
 
 INSERT INTO fixed_deposit (FD_ID, savings_acc, FD_type)
 VALUES ('1', '1', '01');
